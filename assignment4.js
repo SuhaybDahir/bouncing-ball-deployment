@@ -8,9 +8,11 @@ let wallGap = initialWallGap, wallSpeed = 2;
 document.addEventListener("DOMContentLoaded", () => {
   gameArea = document.getElementById('gameArea');
   const windowArea = document.getElementById('interactionWindow');
-  document.getElementById('startButton').addEventListener('click', startGame);
+  const startBtn = document.getElementById('startButton');
 
-  // Desktop W key
+  startBtn.addEventListener('click', startGame);
+
+  // Desktop: W key
   document.addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'w') ballSpeedY = -3;
   });
@@ -18,24 +20,27 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key.toLowerCase() === 'w') ballSpeedY = 3;
   });
 
-  // ✅ Universal pointer support for mobile (fixes iOS & Android)
+  // ✅ Universal Pointer Controls (work on all phones)
   const startFly = e => { e.preventDefault(); ballSpeedY = -3; };
   const stopFly  = e => { e.preventDefault(); ballSpeedY = 3; };
 
-  windowArea.addEventListener('pointerdown', startFly);
+  windowArea.addEventListener('pointerdown', e => {
+    if (!gameInterval) startGame();
+    startFly(e);
+  });
   windowArea.addEventListener('pointerup', stopFly);
   windowArea.addEventListener('pointercancel', stopFly);
   windowArea.addEventListener('pointerleave', stopFly);
-
-  // Tap to start game if not already running
-  windowArea.addEventListener('pointerdown', () => {
-    if (!gameInterval) startGame();
-  });
 });
 
 function startGame() {
   resetGame();
-  document.getElementById('interactionWindow').style.display = 'none';
+
+  // Instead of hiding the window (which breaks event listeners)
+  const iw = document.getElementById('interactionWindow');
+  iw.style.opacity = '0';
+  iw.style.pointerEvents = 'none';
+
   gameInterval = setInterval(updateGame, 20);
 }
 
@@ -120,7 +125,6 @@ function moveWalls() {
     const w = walls[i];
     w.topWall.setAttribute("x", w.topWall.x.baseVal.value - wallSpeed);
     w.bottomWall.setAttribute("x", w.bottomWall.x.baseVal.value - wallSpeed);
-
     if (w.topWall.x.baseVal.value < -wallWidth) {
       gameArea.removeChild(w.topWall);
       gameArea.removeChild(w.bottomWall);
@@ -137,7 +141,12 @@ function checkCollisions() {
     if (hit(w.topWall,bx,by) || hit(w.bottomWall,bx,by)) {
       clearInterval(gameInterval);
       alert("Game Over! Score: " + score);
-      document.getElementById('interactionWindow').style.display = 'flex';
+
+      // Re-enable the overlay for next game
+      const iw = document.getElementById('interactionWindow');
+      iw.style.opacity = '1';
+      iw.style.pointerEvents = 'auto';
+
       gameInterval = null;
       resetGame();
       break;
