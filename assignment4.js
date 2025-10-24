@@ -4,40 +4,36 @@ let wallGap = initialWallGap, wallSpeed = 2;
 
 document.addEventListener("DOMContentLoaded", () => {
   gameArea = document.getElementById('gameArea');
+  const windowArea = document.getElementById('interactionWindow');
   document.getElementById('startButton').addEventListener('click', startGame);
 
-  // Keyboard control (W key)
+  // ✅ Keyboard control
   document.addEventListener('keydown', (event) => {
-    if (event.key.toLowerCase() === 'w') {
-      ballSpeedY = -3;
-    }
+    if (event.key.toLowerCase() === 'w') ballSpeedY = -3;
   });
 
   document.addEventListener('keyup', (event) => {
-    if (event.key.toLowerCase() === 'w') {
-      ballSpeedY = 3;
-    }
+    if (event.key.toLowerCase() === 'w') ballSpeedY = 3;
   });
 
-  // Touch control (for mobile)
-  document.addEventListener('touchstart', () => {
-    ballSpeedY = -3;
-  });
+  // ✅ Touch control (tapping the window)
+  windowArea.addEventListener('touchstart', () => (ballSpeedY = -3));
+  windowArea.addEventListener('touchend', () => (ballSpeedY = 3));
 
-  document.addEventListener('touchend', () => {
-    ballSpeedY = 3;
+  // Optional: for mobile, tapping also starts the game
+  windowArea.addEventListener('click', () => {
+    if (!gameInterval) startGame();
   });
 });
 
 function startGame() {
   resetGame();
+  document.getElementById('interactionWindow').style.display = 'none';
   gameInterval = setInterval(updateGame, 20);
 }
 
 function resetGame() {
-  while (gameArea.firstChild) {
-    gameArea.removeChild(gameArea.firstChild);
-  }
+  while (gameArea.firstChild) gameArea.removeChild(gameArea.firstChild);
   ball = createBall();
   gameArea.appendChild(ball);
   walls = [];
@@ -137,6 +133,8 @@ function checkCollisions() {
         checkWallCollision(wallPair.bottomWall, ballX, ballY)) {
       clearInterval(gameInterval);
       alert("Game Over! Score: " + score);
+      document.getElementById('interactionWindow').style.display = 'flex';
+      gameInterval = null;
       resetGame();
       break;
     }
