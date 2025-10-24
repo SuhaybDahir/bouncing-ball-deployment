@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const windowArea = document.getElementById('interactionWindow');
   document.getElementById('startButton').addEventListener('click', startGame);
 
-  // Desktop: W key
+  // Desktop W key
   document.addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'w') ballSpeedY = -3;
   });
@@ -18,18 +18,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key.toLowerCase() === 'w') ballSpeedY = 3;
   });
 
-  // ✅ Pointer events (works on all modern mobile browsers)
-  windowArea.addEventListener('pointerdown', e => {
-    e.preventDefault();
-    ballSpeedY = -3;
-  });
-  windowArea.addEventListener('pointerup', e => {
-    e.preventDefault();
-    ballSpeedY = 3;
-  });
+  // ✅ Universal pointer support for mobile (fixes iOS & Android)
+  const startFly = e => { e.preventDefault(); ballSpeedY = -3; };
+  const stopFly  = e => { e.preventDefault(); ballSpeedY = 3; };
 
-  // Allow tap to start the game
-  windowArea.addEventListener('click', () => {
+  windowArea.addEventListener('pointerdown', startFly);
+  windowArea.addEventListener('pointerup', stopFly);
+  windowArea.addEventListener('pointercancel', stopFly);
+  windowArea.addEventListener('pointerleave', stopFly);
+
+  // Tap to start game if not already running
+  windowArea.addEventListener('pointerdown', () => {
     if (!gameInterval) startGame();
   });
 });
@@ -99,8 +98,7 @@ function generateWalls() {
 }
 
 function createWallPair(gapY) {
-  const topH = gapY;
-  const bottomH = 400 - gapY - wallGapHeight;
+  const topH = gapY, bottomH = 400 - gapY - wallGapHeight;
   const top = createWall(500, 0, topH);
   const bottom = createWall(500, gapY + wallGapHeight, bottomH);
   walls.push({ topWall: top, bottomWall: bottom });
