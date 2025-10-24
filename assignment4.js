@@ -1,4 +1,4 @@
-// Prevent zoom gestures globally
+// prevent gesture zoom
 document.addEventListener('gesturestart', e => e.preventDefault());
 document.addEventListener('dblclick', e => e.preventDefault());
 
@@ -11,23 +11,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const windowArea = document.getElementById('interactionWindow');
   document.getElementById('startButton').addEventListener('click', startGame);
 
-  // W key control
-  document.addEventListener('keydown', (event) => {
-    if (event.key.toLowerCase() === 'w') ballSpeedY = -3;
+  // desktop W key
+  document.addEventListener('keydown', e => {
+    if (e.key.toLowerCase() === 'w') ballSpeedY = -3;
+  });
+  document.addEventListener('keyup', e => {
+    if (e.key.toLowerCase() === 'w') ballSpeedY = 3;
   });
 
-  document.addEventListener('keyup', (event) => {
-    if (event.key.toLowerCase() === 'w') ballSpeedY = 3;
-  });
+  // mobile pointer/touch
+  const startFly = e => { e.preventDefault(); ballSpeedY = -3; };
+  const stopFly  = e => { e.preventDefault(); ballSpeedY = 3; };
 
-  // Touch controls
-  windowArea.addEventListener('touchstart', () => (ballSpeedY = -3));
-  windowArea.addEventListener('touchend', () => (ballSpeedY = 3));
+  windowArea.addEventListener('touchstart', startFly, { passive: false });
+  windowArea.addEventListener('touchend',   stopFly,  { passive: false });
+  windowArea.addEventListener('pointerdown', startFly, { passive: false });
+  windowArea.addEventListener('pointerup',   stopFly,  { passive: false });
 
-  // Allow tap to start the game
-  windowArea.addEventListener('click', () => {
-    if (!gameInterval) startGame();
-  });
+  windowArea.addEventListener('click', () => { if (!gameInterval) startGame(); });
 });
 
 function startGame() {
@@ -48,16 +49,16 @@ function resetGame() {
 }
 
 function createBall() {
-  let ball = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-  ball.setAttribute("cx", "50");
-  ball.setAttribute("cy", "200");
-  ball.setAttribute("r", ballRadius.toString());
-  ball.setAttribute("fill", "red");
-  return ball;
+  const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  c.setAttribute("cx", "50");
+  c.setAttribute("cy", "200");
+  c.setAttribute("r", ballRadius);
+  c.setAttribute("fill", "red");
+  return c;
 }
 
 let isDayBackground = true;
-let lastBackgroundToggleScore = 0;
+let lastToggleScore = 0;
 
 function updateGame() {
   moveBall();
@@ -66,75 +67,68 @@ function updateGame() {
   checkCollisions();
   updateScore();
   increaseDifficulty();
-  toggleBackgroundIfNeeded();
+  toggleBackground();
 }
 
-function toggleBackgroundIfNeeded() {
-  const wrapper = document.getElementById('gameWrapper');
-  if (score >= lastBackgroundToggleScore + 20) {
-    lastBackgroundToggleScore = score;
+function toggleBackground() {
+  const wrap = document.getElementById('gameWrapper');
+  if (score >= lastToggleScore + 20) {
+    lastToggleScore = score;
     isDayBackground = !isDayBackground;
-    wrapper.style.backgroundImage = isDayBackground
-      ? "url('backgroundDay.png')"
-      : "url('backgroundNight.png')";
+    wrap.style.backgroundImage = isDayBackground ?
+      "url('backgroundDay.png')" :
+      "url('backgroundNight.png')";
   }
 }
 
 function moveBall() {
-  let currentY = ball.cy.baseVal.value;
-  currentY += ballSpeedY;
-  if (currentY < ballRadius) currentY = ballRadius;
-  if (currentY > 400 - ballRadius) currentY = 400 - ballRadius;
-  ball.setAttribute("cy", currentY);
+  let y = ball.cy.baseVal.value + ballSpeedY;
+  if (y < ballRadius) y = ballRadius;
+  if (y > 400 - ballRadius) y = 400 - ballRadius;
+  ball.setAttribute("cy", y);
 }
 
 function generateWalls() {
-  if (walls.length === 0 || walls[walls.length - 1].topWall.x.baseVal.value < wallGap) {
-    let gapY = Math.random() * (300 - wallGapHeight) + 50;
+  if (!walls.length || walls[walls.length-1].topWall.x.baseVal.value < wallGap) {
+    const gapY = Math.random() * (300 - wallGapHeight) + 50;
     createWallPair(gapY);
   }
 }
 
 function createWallPair(gapY) {
-  let topWallHeight = gapY;
-  let bottomWallHeight = 400 - gapY - wallGapHeight;
-  let topWall = createWall(500, 0, topWallHeight);
-  let bottomWall = createWall(500, gapY + wallGapHeight, bottomWallHeight);
-  walls.push({ topWall, bottomWall });
+  const topH = gapY, bottomH = 400 - gapY - wallGapHeight;
+  const top = createWall(500, 0, topH);
+  const bottom = createWall(500, gapY + wallGapHeight, bottomH);
+  walls.push({ topWall: top, bottomWall: bottom });
 }
 
-function createWall(x, y, height) {
-  let wall = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-  wall.setAttribute("x", x.toString());
-  wall.setAttribute("y", y.toString());
-  wall.setAttribute("width", wallWidth.toString());
-  wall.setAttribute("height", height.toString());
-  wall.setAttribute("fill", "green");
-  gameArea.appendChild(wall);
-  return wall;
+function createWall(x, y, h) {
+  const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  r.setAttribute("x", x); r.setAttribute("y", y);
+  r.setAttribute("width", wallWidth); r.setAttribute("height", h);
+  r.setAttribute("fill", "green");
+  gameArea.appendChild(r);
+  return r;
 }
 
 function moveWalls() {
   for (let i = 0; i < walls.length; i++) {
-    let wallPair = walls[i];
-    wallPair.topWall.setAttribute("x", wallPair.topWall.x.baseVal.value - wallSpeed);
-    wallPair.bottomWall.setAttribute("x", wallPair.bottomWall.x.baseVal.value - wallSpeed);
-
-    if (wallPair.topWall.x.baseVal.value < -wallWidth) {
-      gameArea.removeChild(wallPair.topWall);
-      gameArea.removeChild(wallPair.bottomWall);
+    const w = walls[i];
+    w.topWall.setAttribute("x", w.topWall.x.baseVal.value - wallSpeed);
+    w.bottomWall.setAttribute("x", w.bottomWall.x.baseVal.value - wallSpeed);
+    if (w.topWall.x.baseVal.value < -wallWidth) {
+      gameArea.removeChild(w.topWall);
+      gameArea.removeChild(w.bottomWall);
       walls.splice(i, 1);
-      i--;
-      score++;
+      i--; score++;
     }
   }
 }
 
 function checkCollisions() {
-  let ballX = ball.cx.baseVal.value, ballY = ball.cy.baseVal.value;
-  for (let wallPair of walls) {
-    if (checkWallCollision(wallPair.topWall, ballX, ballY) ||
-        checkWallCollision(wallPair.bottomWall, ballX, ballY)) {
+  const bx = ball.cx.baseVal.value, by = ball.cy.baseVal.value;
+  for (const w of walls) {
+    if (hit(w.topWall,bx,by) || hit(w.bottomWall,bx,by)) {
       clearInterval(gameInterval);
       alert("Game Over! Score: " + score);
       document.getElementById('interactionWindow').style.display = 'flex';
@@ -145,10 +139,10 @@ function checkCollisions() {
   }
 }
 
-function checkWallCollision(wall, ballX, ballY) {
-  let wallX = wall.x.baseVal.value, wallY = wall.y.baseVal.value;
-  return ballX + ballRadius > wallX && ballX - ballRadius < wallX + wallWidth &&
-         ballY + ballRadius > wallY && ballY - ballRadius < wallY + wall.height.baseVal.value;
+function hit(w, bx, by) {
+  const wx = w.x.baseVal.value, wy = w.y.baseVal.value;
+  return bx + ballRadius > wx && bx - ballRadius < wx + wallWidth &&
+         by + ballRadius > wy && by - ballRadius < wy + w.height.baseVal.value;
 }
 
 function increaseDifficulty() {
