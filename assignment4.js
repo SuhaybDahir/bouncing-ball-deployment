@@ -1,3 +1,7 @@
+// Prevent zoom gestures globally
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('dblclick', e => e.preventDefault());
+
 let gameArea, ball, walls = [], score = 0, gameInterval, ballSpeedY = 0;
 const wallWidth = 20, wallGapHeight = 100, initialWallGap = 200, ballRadius = 10;
 let wallGap = initialWallGap, wallSpeed = 2;
@@ -7,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const windowArea = document.getElementById('interactionWindow');
   document.getElementById('startButton').addEventListener('click', startGame);
 
-  // ✅ Keyboard control
+  // W key control
   document.addEventListener('keydown', (event) => {
     if (event.key.toLowerCase() === 'w') ballSpeedY = -3;
   });
@@ -16,11 +20,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.key.toLowerCase() === 'w') ballSpeedY = 3;
   });
 
-  // ✅ Touch control (tapping the window)
+  // Touch controls
   windowArea.addEventListener('touchstart', () => (ballSpeedY = -3));
   windowArea.addEventListener('touchend', () => (ballSpeedY = 3));
 
-  // Optional: for mobile, tapping also starts the game
+  // Allow tap to start the game
   windowArea.addEventListener('click', () => {
     if (!gameInterval) startGame();
   });
