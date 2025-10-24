@@ -1,155 +1,101 @@
-// Ahmed Elshiekh, 000854877
-
-let gameArea, ball, walls = [], score = 0, gameInterval, ballSpeedY = 0;
-const wallWidth = 20, wallGapHeight = 100, initialWallGap = 200, ballRadius = 10;
-let wallGap = initialWallGap, wallSpeed = 2;
-
-document.addEventListener("DOMContentLoaded", () => {
-  gameArea = document.getElementById('gameArea');
-  document.getElementById('startButton').addEventListener('click', startGame);
-
-  // ✅ Control with W key
-  document.addEventListener('keydown', (event) => {
-    if (event.key.toLowerCase() === 'w') {
-      ballSpeedY = -3; // move up
-    }
-  });
-
-  document.addEventListener('keyup', (event) => {
-    if (event.key.toLowerCase() === 'w') {
-      ballSpeedY = 3; // fall down
-    }
-  });
-});
-
-function startGame() {
-  resetGame();
-  gameInterval = setInterval(updateGame, 20);
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  background-color: #f9fafb;
+  color: #1e293b;
 }
 
-function resetGame() {
-  while (gameArea.firstChild) {
-    gameArea.removeChild(gameArea.firstChild);
-  }
-  ball = createBall();
-  gameArea.appendChild(ball);
-  walls = [];
-  score = 0;
-  wallGap = initialWallGap;
-  wallSpeed = 2;
-  updateScore();
+h1, h2 {
+  color: yellow;
+  margin-top: 0;
 }
 
-function createBall() {
-  let ball = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-  ball.setAttribute("cx", "50");
-  ball.setAttribute("cy", "200");
-  ball.setAttribute("r", ballRadius.toString());
-  ball.setAttribute("fill", "red");
-  return ball;
+h1 {
+  font-family: Chalkduster, fantasy;
+  font-size: 3em;
 }
 
-let isDayBackground = true;
-let lastBackgroundToggleScore = 0;
-
-function updateGame() {
-  moveBall();
-  generateWalls();
-  moveWalls();
-  checkCollisions();
-  updateScore();
-  increaseDifficulty();
-  toggleBackgroundIfNeeded();
+header {
+  background-image: url(headerBackground.png);
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
 }
 
-function toggleBackgroundIfNeeded() {
-  const wrapper = document.getElementById('gameWrapper');
-  if (score >= lastBackgroundToggleScore + 20) {
-    lastBackgroundToggleScore = score;
-    isDayBackground = !isDayBackground;
-    wrapper.style.backgroundImage = isDayBackground
-      ? "url('backgroundDay.png')"
-      : "url('backgroundNight.png')";
-  }
+header ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
-function moveBall() {
-  let currentY = ball.cy.baseVal.value;
-  currentY += ballSpeedY;
-  if (currentY < ballRadius) currentY = ballRadius;
-  if (currentY > 400 - ballRadius) currentY = 400 - ballRadius;
-  ball.setAttribute("cy", currentY);
+header ul li {
+  font-size: 1em;
+  color: yellow;
+  margin: 3px 0;
 }
 
-function generateWalls() {
-  if (walls.length === 0 || walls[walls.length - 1].topWall.x.baseVal.value < wallGap) {
-    let gapY = Math.random() * (300 - wallGapHeight) + 50;
-    createWallPair(gapY);
-  }
+main {
+  margin: 20px auto;
+  width: 95%;
+  max-width: 500px;
 }
 
-function createWallPair(gapY) {
-  let topWallHeight = gapY;
-  let bottomWallHeight = 400 - gapY - wallGapHeight;
-  let topWall = createWall(500, 0, topWallHeight);
-  let bottomWall = createWall(500, gapY + wallGapHeight, bottomWallHeight);
-  walls.push({ topWall, bottomWall });
+#gameWrapper {
+  border: 2px solid black;
+  background-image: url('backgroundDay.png');
+  background-size: cover;
+  background-position: center;
+  transition: background-image 0.5s ease-in-out;
+  width: 100%;
+  height: 400px;
+  display: block;
+  margin: 0 auto;
 }
 
-function createWall(x, y, height) {
-  let wall = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-  wall.setAttribute("x", x.toString());
-  wall.setAttribute("y", y.toString());
-  wall.setAttribute("width", wallWidth.toString());
-  wall.setAttribute("height", height.toString());
-  wall.setAttribute("fill", "green");
-  gameArea.appendChild(wall);
-  return wall;
+#gameArea {
+  width: 100%;
+  height: 100%;
 }
 
-function moveWalls() {
-  for (let i = 0; i < walls.length; i++) {
-    let wallPair = walls[i];
-    wallPair.topWall.setAttribute("x", wallPair.topWall.x.baseVal.value - wallSpeed);
-    wallPair.bottomWall.setAttribute("x", wallPair.bottomWall.x.baseVal.value - wallSpeed);
-
-    if (wallPair.topWall.x.baseVal.value < -wallWidth) {
-      gameArea.removeChild(wallPair.topWall);
-      gameArea.removeChild(wallPair.bottomWall);
-      walls.splice(i, 1);
-      i--;
-      score++;
-    }
-  }
+button {
+  margin: 10px;
+  padding: 10px 18px;
+  font-size: 1em;
+  background-color: #1e3a8a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-function checkCollisions() {
-  let ballX = ball.cx.baseVal.value, ballY = ball.cy.baseVal.value;
-  for (let wallPair of walls) {
-    if (checkWallCollision(wallPair.topWall, ballX, ballY) ||
-        checkWallCollision(wallPair.bottomWall, ballX, ballY)) {
-      clearInterval(gameInterval);
-      alert("Game Over! Score: " + score);
-      resetGame();
-      break;
-    }
-  }
+button:hover {
+  background-color: #3b82f6;
 }
 
-function checkWallCollision(wall, ballX, ballY) {
-  let wallX = wall.x.baseVal.value, wallY = wall.y.baseVal.value;
-  return ballX + ballRadius > wallX && ballX - ballRadius < wallX + wallWidth &&
-         ballY + ballRadius > wallY && ballY - ballRadius < wallY + wall.height.baseVal.value;
+#scoreBoard {
+  font-size: 1.4em;
+  margin-top: 10px;
+  font-weight: bold;
 }
 
-function increaseDifficulty() {
-  if (score % 10 === 0 && score !== 0) {
-    wallGap -= 10;
-    wallSpeed += 1;
-    score++;
-  }
+footer {
+  background-image: url(footerBackground.png);
+  background-size: cover;
+  background-position: center;
+  height: 60px;
+  margin-top: 20px;
 }
 
-function updateScore() {
-  document.getElementById('score').innerText = score;
+footer p {
+  color: #004aad;
+  font-size: 1em;
+  font-weight: bold;
+  line-height: 60px;
 }
