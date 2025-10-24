@@ -1,4 +1,3 @@
-// prevent gesture zoom
 document.addEventListener('gesturestart', e => e.preventDefault());
 document.addEventListener('dblclick', e => e.preventDefault());
 
@@ -11,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const windowArea = document.getElementById('interactionWindow');
   document.getElementById('startButton').addEventListener('click', startGame);
 
-  // desktop W key
+  // Desktop: W key
   document.addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'w') ballSpeedY = -3;
   });
@@ -19,16 +18,20 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key.toLowerCase() === 'w') ballSpeedY = 3;
   });
 
-  // mobile pointer/touch
-  const startFly = e => { e.preventDefault(); ballSpeedY = -3; };
-  const stopFly  = e => { e.preventDefault(); ballSpeedY = 3; };
+  // ✅ Pointer events (works on all modern mobile browsers)
+  windowArea.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    ballSpeedY = -3;
+  });
+  windowArea.addEventListener('pointerup', e => {
+    e.preventDefault();
+    ballSpeedY = 3;
+  });
 
-  windowArea.addEventListener('touchstart', startFly, { passive: false });
-  windowArea.addEventListener('touchend',   stopFly,  { passive: false });
-  windowArea.addEventListener('pointerdown', startFly, { passive: false });
-  windowArea.addEventListener('pointerup',   stopFly,  { passive: false });
-
-  windowArea.addEventListener('click', () => { if (!gameInterval) startGame(); });
+  // Allow tap to start the game
+  windowArea.addEventListener('click', () => {
+    if (!gameInterval) startGame();
+  });
 });
 
 function startGame() {
@@ -57,7 +60,7 @@ function createBall() {
   return c;
 }
 
-let isDayBackground = true;
+let isDay = true;
 let lastToggleScore = 0;
 
 function updateGame() {
@@ -74,10 +77,10 @@ function toggleBackground() {
   const wrap = document.getElementById('gameWrapper');
   if (score >= lastToggleScore + 20) {
     lastToggleScore = score;
-    isDayBackground = !isDayBackground;
-    wrap.style.backgroundImage = isDayBackground ?
-      "url('backgroundDay.png')" :
-      "url('backgroundNight.png')";
+    isDay = !isDay;
+    wrap.style.backgroundImage = isDay
+      ? "url('backgroundDay.png')"
+      : "url('backgroundNight.png')";
   }
 }
 
@@ -89,14 +92,15 @@ function moveBall() {
 }
 
 function generateWalls() {
-  if (!walls.length || walls[walls.length-1].topWall.x.baseVal.value < wallGap) {
+  if (!walls.length || walls[walls.length - 1].topWall.x.baseVal.value < wallGap) {
     const gapY = Math.random() * (300 - wallGapHeight) + 50;
     createWallPair(gapY);
   }
 }
 
 function createWallPair(gapY) {
-  const topH = gapY, bottomH = 400 - gapY - wallGapHeight;
+  const topH = gapY;
+  const bottomH = 400 - gapY - wallGapHeight;
   const top = createWall(500, 0, topH);
   const bottom = createWall(500, gapY + wallGapHeight, bottomH);
   walls.push({ topWall: top, bottomWall: bottom });
@@ -104,8 +108,10 @@ function createWallPair(gapY) {
 
 function createWall(x, y, h) {
   const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-  r.setAttribute("x", x); r.setAttribute("y", y);
-  r.setAttribute("width", wallWidth); r.setAttribute("height", h);
+  r.setAttribute("x", x);
+  r.setAttribute("y", y);
+  r.setAttribute("width", wallWidth);
+  r.setAttribute("height", h);
   r.setAttribute("fill", "green");
   gameArea.appendChild(r);
   return r;
@@ -116,11 +122,13 @@ function moveWalls() {
     const w = walls[i];
     w.topWall.setAttribute("x", w.topWall.x.baseVal.value - wallSpeed);
     w.bottomWall.setAttribute("x", w.bottomWall.x.baseVal.value - wallSpeed);
+
     if (w.topWall.x.baseVal.value < -wallWidth) {
       gameArea.removeChild(w.topWall);
       gameArea.removeChild(w.bottomWall);
       walls.splice(i, 1);
-      i--; score++;
+      i--;
+      score++;
     }
   }
 }
