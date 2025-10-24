@@ -1,10 +1,16 @@
-body {
-  font-family: Arial, sans-serif;
-  text-align: center;
+html, body {
   margin: 0;
   padding: 0;
+  font-family: Arial, sans-serif;
+  text-align: center;
   background-color: #f9fafb;
   color: #1e293b;
+
+  /* Disable zooming / text selection / copy-paste on mobile */
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 h1, h2 {
@@ -47,7 +53,6 @@ main {
   position: relative;
 }
 
-/* Main game box */
 #gameWrapper {
   position: relative;
   border: 2px solid black;
@@ -68,7 +73,7 @@ main {
   height: 100%;
 }
 
-/* ✅ Interactive window overlay */
+/* Interaction window overlay */
 #interactionWindow {
   position: absolute;
   top: 0;
@@ -84,12 +89,14 @@ main {
   font-weight: bold;
   text-shadow: 1px 1px 4px black;
   cursor: pointer;
-  user-select: none;
   border-radius: 12px;
   transition: background 0.2s ease;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-/* Slight highlight when touched */
 #interactionWindow:active {
   background: rgba(255, 255, 255, 0.15);
 }
