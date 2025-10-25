@@ -1,16 +1,13 @@
 document.addEventListener('gesturestart', e => e.preventDefault());
 document.addEventListener('dblclick', e => e.preventDefault());
 
-let gameArea, ball, walls = [], score = 0, gameInterval, ballSpeedY = 0;
+let gameArea, ball, walls = [], score = 0, gameInterval = null, ballSpeedY = 0;
 const wallWidth = 20, wallGapHeight = 100, initialWallGap = 200, ballRadius = 10;
 let wallGap = initialWallGap, wallSpeed = 2;
 
 document.addEventListener("DOMContentLoaded", () => {
   gameArea = document.getElementById('gameArea');
   const windowArea = document.getElementById('interactionWindow');
-  const startBtn = document.getElementById('startButton');
-
-  startBtn.addEventListener('click', startGame);
 
   // Desktop: W key
   document.addEventListener('keydown', e => {
@@ -20,11 +17,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key.toLowerCase() === 'w') ballSpeedY = 3;
   });
 
-  // ✅ Universal Pointer Controls (work on all phones)
+  // ✅ Pointer (works on all phones)
   const startFly = e => { e.preventDefault(); ballSpeedY = -3; };
   const stopFly  = e => { e.preventDefault(); ballSpeedY = 3; };
 
   windowArea.addEventListener('pointerdown', e => {
+    e.preventDefault();
     if (!gameInterval) startGame();
     startFly(e);
   });
@@ -36,10 +34,10 @@ document.addEventListener("DOMContentLoaded", () => {
 function startGame() {
   resetGame();
 
-  // Instead of hiding the window (which breaks event listeners)
   const iw = document.getElementById('interactionWindow');
   iw.style.opacity = '0';
   iw.style.pointerEvents = 'none';
+  iw.querySelector('p').textContent = ''; // hide tap message during play
 
   gameInterval = setInterval(updateGame, 20);
 }
@@ -140,14 +138,14 @@ function checkCollisions() {
   for (const w of walls) {
     if (hit(w.topWall,bx,by) || hit(w.bottomWall,bx,by)) {
       clearInterval(gameInterval);
-      alert("Game Over! Score: " + score);
+      gameInterval = null;
 
-      // Re-enable the overlay for next game
       const iw = document.getElementById('interactionWindow');
       iw.style.opacity = '1';
       iw.style.pointerEvents = 'auto';
+      iw.querySelector('p').textContent = '🎮 Tap here to play again';
 
-      gameInterval = null;
+      alert("Game Over! Score: " + score);
       resetGame();
       break;
     }
