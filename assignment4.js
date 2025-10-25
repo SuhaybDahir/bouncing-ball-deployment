@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   gameArea = document.getElementById('gameArea');
   const windowArea = document.getElementById('interactionWindow');
 
-  // Desktop W key
+  // 🖥️ Desktop Controls
   document.addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'w') ballSpeedY = -3;
   });
@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key.toLowerCase() === 'w') ballSpeedY = 3;
   });
 
-  // ✅ Touch / Pointer Controls (Universal)
+  // 📱 Universal Pointer Controls
   windowArea.addEventListener('pointerdown', e => {
     e.preventDefault();
     if (!gameActive) startGame();
@@ -31,11 +31,11 @@ document.addEventListener("DOMContentLoaded", () => {
     ballSpeedY = 3;
   });
 
-  // fallback for missed events (ensures no stuck falling)
   windowArea.addEventListener('pointercancel', e => {
     e.preventDefault();
     ballSpeedY = 3;
   });
+
   windowArea.addEventListener('pointerleave', e => {
     e.preventDefault();
     ballSpeedY = 3;
@@ -48,7 +48,7 @@ function startGame() {
 
   const iw = document.getElementById('interactionWindow');
   iw.style.opacity = '0';
-  iw.style.pointerEvents = 'auto'; // keep active even when transparent
+  iw.style.pointerEvents = 'auto';
   iw.querySelector('p').textContent = '';
 
   if (gameInterval) clearInterval(gameInterval);
@@ -104,7 +104,7 @@ function moveBall() {
   if (y < ballRadius) y = ballRadius;
   if (y > 400 - ballRadius) {
     y = 400 - ballRadius;
-    ballSpeedY = 3; // keep falling normally
+    ballSpeedY = 3;
   }
   ball.setAttribute("cy", y);
 }
@@ -139,7 +139,6 @@ function moveWalls() {
     const w = walls[i];
     w.topWall.setAttribute("x", w.topWall.x.baseVal.value - wallSpeed);
     w.bottomWall.setAttribute("x", w.bottomWall.x.baseVal.value - wallSpeed);
-
     if (w.topWall.x.baseVal.value < -wallWidth) {
       gameArea.removeChild(w.topWall);
       gameArea.removeChild(w.bottomWall);
