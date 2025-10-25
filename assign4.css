@@ -81,7 +81,7 @@ main {
   cursor: pointer;
   z-index: 10;
   pointer-events: auto;
-  transition: background 0.2s;
+  transition: background 0.3s;
   touch-action: manipulation;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
