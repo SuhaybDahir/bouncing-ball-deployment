@@ -1,15 +1,17 @@
 document.addEventListener('gesturestart', e => e.preventDefault());
 document.addEventListener('dblclick', e => e.preventDefault());
 
-let gameArea, ball, walls = [], score = 0, gameInterval = null, ballSpeedY = 0;
+let gameArea, ball, walls = [], score = 0, gameInterval = null;
+let ballSpeedY = 3;
 const wallWidth = 20, wallGapHeight = 100, initialWallGap = 200, ballRadius = 10;
 let wallGap = initialWallGap, wallSpeed = 2;
+let gameActive = false;
 
 document.addEventListener("DOMContentLoaded", () => {
   gameArea = document.getElementById('gameArea');
   const windowArea = document.getElementById('interactionWindow');
 
-  // Desktop: W key
+  // Desktop W key
   document.addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'w') ballSpeedY = -3;
   });
@@ -17,28 +19,39 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key.toLowerCase() === 'w') ballSpeedY = 3;
   });
 
-  // ✅ Pointer (works on all phones)
-  const startFly = e => { e.preventDefault(); ballSpeedY = -3; };
-  const stopFly  = e => { e.preventDefault(); ballSpeedY = 3; };
-
+  // ✅ Touch / Pointer Controls (Universal)
   windowArea.addEventListener('pointerdown', e => {
     e.preventDefault();
-    if (!gameInterval) startGame();
-    startFly(e);
+    if (!gameActive) startGame();
+    ballSpeedY = -3;
   });
-  windowArea.addEventListener('pointerup', stopFly);
-  windowArea.addEventListener('pointercancel', stopFly);
-  windowArea.addEventListener('pointerleave', stopFly);
+
+  windowArea.addEventListener('pointerup', e => {
+    e.preventDefault();
+    ballSpeedY = 3;
+  });
+
+  // fallback for missed events (ensures no stuck falling)
+  windowArea.addEventListener('pointercancel', e => {
+    e.preventDefault();
+    ballSpeedY = 3;
+  });
+  windowArea.addEventListener('pointerleave', e => {
+    e.preventDefault();
+    ballSpeedY = 3;
+  });
 });
 
 function startGame() {
   resetGame();
+  gameActive = true;
 
   const iw = document.getElementById('interactionWindow');
   iw.style.opacity = '0';
-  iw.style.pointerEvents = 'none';
-  iw.querySelector('p').textContent = ''; // hide tap message during play
+  iw.style.pointerEvents = 'auto'; // keep active even when transparent
+  iw.querySelector('p').textContent = '';
 
+  if (gameInterval) clearInterval(gameInterval);
   gameInterval = setInterval(updateGame, 20);
 }
 
@@ -89,7 +102,10 @@ function toggleBackground() {
 function moveBall() {
   let y = ball.cy.baseVal.value + ballSpeedY;
   if (y < ballRadius) y = ballRadius;
-  if (y > 400 - ballRadius) y = 400 - ballRadius;
+  if (y > 400 - ballRadius) {
+    y = 400 - ballRadius;
+    ballSpeedY = 3; // keep falling normally
+  }
   ball.setAttribute("cy", y);
 }
 
@@ -123,6 +139,7 @@ function moveWalls() {
     const w = walls[i];
     w.topWall.setAttribute("x", w.topWall.x.baseVal.value - wallSpeed);
     w.bottomWall.setAttribute("x", w.bottomWall.x.baseVal.value - wallSpeed);
+
     if (w.topWall.x.baseVal.value < -wallWidth) {
       gameArea.removeChild(w.topWall);
       gameArea.removeChild(w.bottomWall);
@@ -139,6 +156,7 @@ function checkCollisions() {
     if (hit(w.topWall,bx,by) || hit(w.bottomWall,bx,by)) {
       clearInterval(gameInterval);
       gameInterval = null;
+      gameActive = false;
 
       const iw = document.getElementById('interactionWindow');
       iw.style.opacity = '1';
