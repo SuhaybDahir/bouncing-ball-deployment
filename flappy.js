@@ -1,7 +1,11 @@
 document.addEventListener('gesturestart', e => e.preventDefault());
 document.addEventListener('dblclick', e => e.preventDefault());
 
-let gameArea, ball, walls = [], score = 0, gameInterval = null;
+let _score = 0;
+Object.defineProperty(window, "score", {
+  get() { return _score; },
+  set() { console.warn("Score modification blocked."); }
+});
 let ballSpeedY = 3;
 const wallWidth = 20, wallGapHeight = 100, initialWallGap = 200, ballRadius = 10;
 let wallGap = initialWallGap, wallSpeed = 2;
@@ -144,7 +148,7 @@ function moveWalls() {
       gameArea.removeChild(w.bottomWall);
       walls.splice(i, 1);
       i--;
-      score++;
+      _score++
     }
   }
 }
@@ -162,7 +166,7 @@ function checkCollisions() {
       iw.style.pointerEvents = 'auto';
       iw.querySelector('p').textContent = '🎮 Tap here to play again';
 
-      alert("Game Over! Score: " + score);
+      alert("Game Over! Score: " + _score);
       resetGame();
       break;
     }
@@ -184,5 +188,5 @@ function increaseDifficulty() {
 }
 
 function updateScore() {
-  document.getElementById('score').innerText = score;
+  document.getElementById('score').innerText = _score;
 }
