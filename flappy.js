@@ -1,11 +1,15 @@
 document.addEventListener('gesturestart', e => e.preventDefault());
 document.addEventListener('dblclick', e => e.preventDefault());
 
+// ====== SECURITY FIX #1 (Score protection) ======
 let _score = 0;
 Object.defineProperty(window, "score", {
   get() { return _score; },
   set() { console.warn("Score modification blocked."); }
 });
+
+// ====== Original game variables (restored) ======
+let gameArea, ball, walls = [], gameInterval = null;
 let ballSpeedY = 3;
 const wallWidth = 20, wallGapHeight = 100, initialWallGap = 200, ballRadius = 10;
 let wallGap = initialWallGap, wallSpeed = 2;
@@ -15,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
   gameArea = document.getElementById('gameArea');
   const windowArea = document.getElementById('interactionWindow');
 
-  // 🖥️ Desktop Controls
+  // Desktop Controls
   document.addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'w') ballSpeedY = -3;
   });
@@ -23,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key.toLowerCase() === 'w') ballSpeedY = 3;
   });
 
-  // 📱 Universal Pointer Controls
+  // Universal Touch/Pointer Controls
   windowArea.addEventListener('pointerdown', e => {
     e.preventDefault();
     if (!gameActive) startGame();
@@ -34,18 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     ballSpeedY = 3;
   });
-
-  windowArea.addEventListener('pointercancel', e => {
-    e.preventDefault();
-    ballSpeedY = 3;
-  });
-
-  windowArea.addEventListener('pointerleave', e => {
-    e.preventDefault();
-    ballSpeedY = 3;
-  });
 });
 
+// ====== START GAME ======
 function startGame() {
   resetGame();
   gameActive = true;
@@ -56,15 +51,24 @@ function startGame() {
   iw.querySelector('p').textContent = '';
 
   if (gameInterval) clearInterval(gameInterval);
-  gameInterval = setInterval(updateGame, 20);
+
+  // ====== SECURITY FIX #2 (stability – safe game loop) ======
+  gameInterval = setInterval(() => {
+    try {
+      updateGame();
+    } catch (err) {
+      console.error("Game prevented from crashing:", err);
+    }
+  }, 20);
 }
 
+// ====== RESET GAME ======
 function resetGame() {
   while (gameArea.firstChild) gameArea.removeChild(gameArea.firstChild);
   ball = createBall();
   gameArea.appendChild(ball);
   walls = [];
-  score = 0;
+  _score = 0;   // secure score reset
   wallGap = initialWallGap;
   wallSpeed = 2;
   updateScore();
@@ -94,8 +98,8 @@ function updateGame() {
 
 function toggleBackground() {
   const wrap = document.getElementById('gameWrapper');
-  if (score >= lastToggleScore + 20) {
-    lastToggleScore = score;
+  if (_score >= lastToggleScore + 20) {
+    lastToggleScore = _score;
     isDay = !isDay;
     wrap.style.backgroundImage = isDay
       ? "url('backgroundDay.png')"
@@ -148,7 +152,7 @@ function moveWalls() {
       gameArea.removeChild(w.bottomWall);
       walls.splice(i, 1);
       i--;
-      _score++
+      _score++;  // secure score
     }
   }
 }
@@ -180,10 +184,10 @@ function hit(w, bx, by) {
 }
 
 function increaseDifficulty() {
-  if (score % 10 === 0 && score !== 0) {
+  if (_score % 10 === 0 && _score !== 0) {
     wallGap -= 10;
     wallSpeed += 1;
-    score++;
+    _score++;
   }
 }
 
