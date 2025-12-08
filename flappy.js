@@ -1,14 +1,12 @@
 document.addEventListener('gesturestart', e => e.preventDefault());
 document.addEventListener('dblclick', e => e.preventDefault());
 
-// ====== SECURITY FIX #1 (Score protection) ======
 let _score = 0;
 Object.defineProperty(window, "score", {
   get() { return _score; },
   set() { console.warn("Score modification blocked."); }
 });
 
-// ====== Original game variables (restored) ======
 let gameArea, ball, walls = [], gameInterval = null;
 let ballSpeedY = 3;
 const wallWidth = 20, wallGapHeight = 100, initialWallGap = 200, ballRadius = 10;
@@ -19,7 +17,6 @@ document.addEventListener("DOMContentLoaded", () => {
   gameArea = document.getElementById('gameArea');
   const windowArea = document.getElementById('interactionWindow');
 
-  // Desktop Controls
   document.addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'w') ballSpeedY = -3;
   });
@@ -27,7 +24,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key.toLowerCase() === 'w') ballSpeedY = 3;
   });
 
-  // Universal Touch/Pointer Controls
   windowArea.addEventListener('pointerdown', e => {
     e.preventDefault();
     if (!gameActive) startGame();
@@ -40,7 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// ====== START GAME ======
 function startGame() {
   resetGame();
   gameActive = true;
@@ -52,7 +47,6 @@ function startGame() {
 
   if (gameInterval) clearInterval(gameInterval);
 
-  // ====== SECURITY FIX #2 (stability – safe game loop) ======
   gameInterval = setInterval(() => {
     try {
       updateGame();
@@ -62,13 +56,12 @@ function startGame() {
   }, 20);
 }
 
-// ====== RESET GAME ======
 function resetGame() {
   while (gameArea.firstChild) gameArea.removeChild(gameArea.firstChild);
   ball = createBall();
   gameArea.appendChild(ball);
   walls = [];
-  _score = 0;   // secure score reset
+  _score = 0;   
   wallGap = initialWallGap;
   wallSpeed = 2;
   updateScore();
@@ -152,7 +145,7 @@ function moveWalls() {
       gameArea.removeChild(w.bottomWall);
       walls.splice(i, 1);
       i--;
-      _score++;  // secure score
+      _score++;  
     }
   }
 }
