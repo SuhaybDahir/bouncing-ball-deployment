@@ -3,7 +3,7 @@ const path = require("path");
 const helmet = require("helmet");
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 10000;
 
 // Security headers
 app.use(
@@ -23,23 +23,25 @@ app.use(
   })
 );
 
-// Force HTTPS (important for security)
+// Force HTTPS
 app.use((req, res, next) => {
-  if (req.header("x-forwarded-proto") !== "https" && process.env.NODE_ENV === "production") {
+  if (
+    req.header("x-forwarded-proto") !== "https" &&
+    process.env.NODE_ENV === "production"
+  ) {
     return res.redirect(`https://${req.header("host")}${req.url}`);
   }
   next();
 });
 
-// Serve static files (your game files)
-app.use(express.static(path.join(__dirname, "public")));
+//  Serve your files directly from the root folder 
+app.use(express.static(__dirname));
 
-// Default page
+// Default route (home page)
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "flappy.html"));
+  res.sendFile(path.join(__dirname, "flappy.html"));
 });
 
-// Start server
 app.listen(PORT, () => {
   console.log(`Secure Flappy Ball running on port ${PORT}`);
 });
